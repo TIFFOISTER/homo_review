@@ -1,0 +1,123 @@
+setwd('~/Review - Homo E/homo_review')  
+library(litsearchr)  
+library(tidyverse) 
+library(dplyr) 
+library(ggplot2) 
+library(readr) 
+library(ggraph) 
+library(igraph)
+#search terms ( pleistocene  AND  ( early,  OR  mid )  AND  ( hominin,  OR  homo,  OR  human )  AND  ( environment*,  OR  climate,  OR  biome,  OR  vegetation ) )  
+##+ YEAR 2000-2021 in SCOPUS, WeboSci, BASE 
+dir.create('naivedir')  
+## create a directory and move all search result files into
+#import search results and format  
+naiveimport <-litsearchr::import_results(directory = 'naivedir', verbose = TRUE)
+naiveresults <-litsearchr::remove_duplicates(naiveimport, field = "title", method = "string_osa") 
+#identify keywords ##no tagged keywords (raked=all)
+all_keywords <-
+  litsearchr::extract_terms(
+    text = paste(naiveresults$title, naiveresults$abstract),
+    method = "fakerake",
+    min_freq = 3, ##maybe consider adjusting this
+    ngrams = TRUE,
+    min_n = 2,
+    language = "English"
+  )
+#build co-occurrence network 
+naivedfm <-
+  litsearchr::create_dfm(
+    elements = paste(naiveresults$title, naiveresults$abstract),
+    features = all_keywords
+  )
+
+naivegraph <-
+  litsearchr::create_network(
+    search_dfm = naivedfm,
+    min_studies = 2,
+    min_occ = 3
+  ) 
+#find change point in keyword importance (switched tutorials, to luketudge)
+ggraph(naivegraph, layout="stress") +
+  coord_fixed() +
+  expand_limits(x=c(-3, 3)) +
+  geom_edge_link(aes(alpha=weight)) +
+  geom_node_point(shape="circle filled", fill="white") +
+  geom_node_text(aes(label=name), hjust="outward", check_overlap=TRUE) +
+  guides(edge_alpha=FALSE)
+ 
+strengths <- strength(naivegraph)
+
+data.frame(term=names(strengths), strength=strengths, row.names=NULL) %>%
+  mutate(rank=rank(strength, ties.method="min")) %>%
+  arrange(strength) ->
+  term_strengths
+ 
+cutoff_fig <- ggplot(term_strengths, aes(x=rank, y=strength, label=term)) +
+  geom_line() +
+  geom_point() +
+  geom_text(data=filter(term_strengths, rank>5), hjust="right", nudge_y=20, check_overlap=TRUE)
+ 
+cutoff_cum <- find_cutoff(naivegraph, method="cumulative", percent=0.8)
+cutoff_fig +
+  geom_hline(yintercept=cutoff_cum, linetype="dashed") 
+get_keywords(reduce_graph(naivegraph, cutoff_cum))
+
+#change points 
+cutoff_change <- find_cutoff(naivegraph, method="changepoint", knot_num=3)
+cutoff_fig +
+  geom_hline(yintercept=cutoff_change, linetype="dashed")
+g_redux <- reduce_graph(naivegraph, cutoff_change[1])
+searchterms <- get_keywords(g_redux)
+exterms <- c(
+  "vegetation",
+  "biome",
+  "homo*"
+)
+
+searchterms <- c(searchterms, exterms)
+
+#export identified search terms as .csv and create concept groups 
+write.csv(searchterms, "./search_terms.csv")
+# read in grouped terms 
+grouped_terms <- read.csv("./grouped_terms.csv") 
+# create list of terms by group and write into one data frame 
+time <- grouped_terms %>% filter(group =='1')  
+location <- grouped_terms %>% filter(group =='2') 
+human <- grouped_terms %>% filter(group =='3') 
+proxy <- grouped_terms %>% filter(group =='4') 
+climate <- grouped_terms %>% filter(group =='6')
+time <- time %>% select(x) 
+location <- location %>% select(x)  
+human <- human %>% select(x) 
+proxy <- proxy %>% select(x) 
+climate <- climate %>% select(x)
+mysearchterms <- list(time, location, human, proxy, climate) 
+### [[1]] time, [[2]] place, [[3]] human, [[4]] proxy, [[5]] climate
+# write search  
+## can't get the 'ors' to auto generate, using the Grames tutorial don't get all search terms 
+### just self write??  
+##### \(\early-middle pleistocene\ OR \early-middle pleistocene transition\ OR \early middle\ OR\ early middle pleistocene\ OR\ early pleistocene\ OR\mid-pleistocene climate transition\ OR \middle pleistocene\ OR\ palaeolithic sites\ OR\ pleistocene sites \ OR \pleistocene transition \OR\  terminal pleistocene \OR\ upper pleistocene\ )AND (\iberian peninsula \OR\ nihewan basin \OR\ north china \OR\ northern china \OR\  south africa \OR\south african \OR\southern italy \OR\western europe\) AND (\early hominin \OR\early hominins \OR\early human \OR\early human occupation \OR\early modern \OR\early modern humans \OR\hominin dispersal \OR\human dispersal \OR\human dispersals \OR\human evolution \OR\human impact \OR\human occupation \OR\human occupations \OR\human settlement \OR\modern human \OR\modern humans \OR\pleistocene hominin \OR\pleistocene human \OR\ homo*\) AND (\archaeological record \OR\environmental reconstruction \OR\large mammal \OR\palaeoenvironmental reconstruction\OR\ stable isotope \OR\vegetation\) AND(\climate change \OR\climate transition \OR\environmental change \OR\environmental conditions\OR\environmental context \OR\environmental dynamics\OR\global climate\OR\mid-pleistocene climate\OR\pleistocene climate\OR\pleistocene climate change\OR\pleistocene environmental\OR\biome\)
+## 533 records on web od science 
+###can see from first page a number aren't suitable for the study. SCOPUS couldn't process the search & too long for BASE
+ 
+#checking wOs results against naive 
+dir.create('systematicdir')   
+retrieved_articles <-litsearchr::import_results(directory = 'systematicdir', verbose = TRUE)
+retrieved_articles <-litsearchr::remove_duplicates(retrieved_articles, field = "title", method = "string_osa")  
+gold_standard <-
+  c(
+    "Environmental drivers of megafauna and hominin extinction in Southeast Asia",
+    "Alternating high and low climate variability: The context of natural selection and speciation in Plio-Pleistocene hominin evolution",
+    "Early Pleistocene Faunal Connections Between Africa and Eurasia: An Ecological Perspective"
+  ) 
+articles_found <- litsearchr::check_recall(true_hits = gold_standard,
+                                           retrieved = retrieved_articles$title) 
+ ###DID NOT FIND golds!
+dir.create('mendeleylib')   
+mendeley <-litsearchr::import_results(directory = 'mendeleylib', verbose = TRUE)
+mendeley <-litsearchr::remove_duplicates(mendeley, field = "title", method = "string_osa") 
+ 
+common_titles <- (mendeley$title %in% retrieved_articles$title) 
+count(common_titles, var = TRUE) 
+summary(common_titles) 
+## FALSE=129, TRUE= 18 ... no bueno 
