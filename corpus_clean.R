@@ -1,6 +1,6 @@
 setwd('~/Review - Homo E/homo_review') 
 library(easypackages) 
-libraries("litsearchr","tidyverse", "dplyr", "readr", "revtools", "tm","SnowballC", "RColorBrewer", "ggplot2", "wordcloud", "biclust", "cluster", "igraph","fpc","Rcampdf","tidytext")
+libraries("litsearchr","tidyverse", "dplyr", "readr", "revtools", "RColorBrewer", "ggplot2", "tidytext")
 ##importing OG corpus & setting up for scoring 
 mendeley <-litsearchr::import_results(directory = 'mendeleylib', verbose = TRUE)
 mendeley <-litsearchr::remove_duplicates(mendeley, field = "title", method = "string_osa") 
