@@ -1,0 +1,25 @@
+# run clusteranalysis.R #  
+##circle plots## 
+colours <- brewer.pal(8,'Set3')  
+op = par(mar=c(2,2,2,2))
+op = par(bg='black') 
+plot(as.phylo(aggl.clust.w), type = 'fan',  
+     cex = .8,label.offset = 0.1,
+     tip.color = colours[clusters8], edge.color = 'white')
+plot(as.phylo(aggl.clust.w), type = 'fan',  
+     cex = .8, label.offset = 0.1,
+     tip.color = colours[clusters2], edge.color = 'white')
+## need to fix cut off of labels ## 
+clust.tib8 <- as_tibble(clusters8) 
+row.names(clust.tib8)<- corp$paperid 
+clust.tib2 <- as_tibble(clusters2) 
+row.names(clust.tib2)<- corp$paperid  
+corp.clusts <- skinnycorpus[,3:6] 
+corp.clusts<- cbind(corp.clusts, clust.tib2, clust.tib8) 
+colnames(corp.clusts)[5]<- 'clusters2' 
+colnames(corp.clusts)[6]<- 'clusters8'
+write.csv(corp.clusts,file='./clustercorpus.csv')
+## clustering analysis/validation ## 
+ #bootstraps#
+cboot.8 <- clusterboot(jacc.dist, clustermethod=disthclustCBI, method = 'ward.D', k=8)
+cboot.2 <- clusterboot(jacc.dist, clustermethod=disthclustCBI, method = 'ward.D', k=2)
