@@ -13,7 +13,7 @@ train_data <- read.csv('./training_files.csv')
 train_data <- train_data %>% select(-(X)) 
 ##score in excel & add new papers found from WoS and references 
 #reading in full corpus  
-corpus<- read.csv('./corpus.csv') 
+corpus<- read.csv('./fatcorpus_hypothesis.csv') 
 #identifying location labels 
 titles<- corpus[c('title')] 
 abstracts<- corpus[c('abstract')]  
@@ -34,4 +34,5 @@ abstracts_tidy <- abstracts_df %>% unnest_tokens(word, text)
 data(stop_words) 
 abstracts_tidy <- abstracts_tidy %>% anti_join(stop_words) 
 abstracts_count <- abstracts_tidy %>% count(word, sort = TRUE)  
-write.csv(abstracts_count, './abstracts_count.csv') 
+write.csv(abstracts_count, './abstracts_count.csv')  
+## from these files extract terms which refer to location & environment -- then search papers for them to check for any bigrams/trigrams which have been seperated ## 
