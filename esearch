@@ -1,0 +1,73 @@
+library(easypackages) 
+libraries("litsearchr","tidyverse", "dplyr", "readr", "revtools", "RColorBrewer", "ggplot2", "tidytext","pdftools","tm") 
+ ## testing pdf_text function ## 
+testpdf<- pdf_text('./testpdf.pdf')  
+fileConn<-file("output.txt")
+writeLines(c(testpdf), fileConn)
+close(fileConn) 
+# download all skinny corpus pdfs into one location #
+## list all pdf files and convert to txt (have to set wd to pdf directory for pdf_text to run) ##
+setwd('~/Review - Homo E/homo_review/skinnypdfs')
+skinny <- list.files(pattern = "pdf$")  
+skinnytexts <- lapply(skinny, pdf_text)   
+# reset wd & read in skinny corpus, simple search terms # 
+setwd('~/Review - Homo E/homo_review') 
+skinnycorpus <- read.csv('./skinnycorpus.csv') 
+searchterms<- c("arid",
+                "boreal",
+                "bush*",
+                "C4-dominated",
+                "climate*",
+                "cold",
+                "conifer",
+                "cool",
+                "deciduous",
+                "dense",
+                "desert",
+                "dry*",
+                "envrionment*",
+                "flexibility",
+                "fluctuating",
+                "forest*",
+                "grass*",
+                "herb*",
+                "humid",
+                "instability",
+                "lake margin",
+                "lakeshore",
+                "mangrove",
+                "marsh*",
+                "meadow*",
+                "mediterranean",
+                "mesic",
+                "moist",
+                "moor*",
+                "mosaic", 
+                "mud",
+                "open",
+                "parkland",
+                "plain",
+                "rainforest", 
+                "riparian",
+                "savanna*",
+                "scrub*",
+                "seasonal*",
+                "shrub*",
+                "stepp*",
+                "swamp*",
+                "temperate",
+                "tropical",
+                "variabl*",
+                "veget*",
+                "warm",
+                "wet",
+                "wetland",
+                "wood*",
+                "xeric"
+) 
+## NB terms searched are the most simple roots which will enable hits for all e terms in sparsest matrix version # 
+# search skinny texts for terms #
+searchmatrix <- sapply(searchterms, grepl, skinnytexts) 
+# get list of what papers for each term #
+write.csv(searchmatrix, './searchmatrix.csv') 
+# manually check hits(full term, location, context (+ve/-ve)) & complete matrix #
