@@ -1,0 +1,109 @@
+setwd('~/Review - Homo E/homo_review')  
+library(litsearchr)  
+library(tidyverse) 
+library(dplyr) 
+library(ggplot2) 
+library(readr) 
+library(ggraph) 
+library(igraph)
+# importing mendeley library and substituting for naive search #
+mendeley <-litsearchr::import_results(directory = 'mendeleylib', verbose = TRUE)
+mendeley <-litsearchr::remove_duplicates(mendeley, field = "title", method = "string_osa") 
+# identify keywords #
+all_keywords <-
+  litsearchr::extract_terms(
+    text = paste(mendeley$title, mendeley$abstract),
+    method = "fakerake",
+    min_freq = 3, ##consider adjusting this
+    ngrams = TRUE,
+    min_n = 2,
+    language = "English"
+  )
+#build co-occurrence network 
+mend_fm <-
+  litsearchr::create_dfm(
+    elements = paste(mendeley$title, mendeley$abstract),
+    features = all_keywords
+  )
+
+mend_graph <-
+  litsearchr::create_network(
+    search_dfm = mend_fm,
+    min_studies = 2,
+    min_occ = 3
+  ) 
+#find change point in keyword importance # 
+ggraph(mend_graph, layout="stress") +
+  coord_fixed() +
+  expand_limits(x=c(-3, 3)) +
+  geom_edge_link(aes(alpha=weight)) +
+  geom_node_point(shape="circle filled", fill="white") +
+  geom_node_text(aes(label=name), hjust="outward", check_overlap=TRUE) +
+  guides(edge_alpha=FALSE)
+
+strengths <- strength(mend_graph)
+
+data.frame(term=names(strengths), strength=strengths, row.names=NULL) %>%
+  mutate(rank=rank(strength, ties.method="min")) %>%
+  arrange(strength) ->
+  term_strengths
+
+cutoff_fig <- ggplot(term_strengths, aes(x=rank, y=strength, label=term)) +
+  geom_line() +
+  geom_point() +
+  geom_text(data=filter(term_strengths, rank>5), hjust="right", nudge_y=20, check_overlap=TRUE)
+
+cutoff_cum <- find_cutoff(mend_graph, method="cumulative", percent=0.8)
+cutoff_fig +
+  geom_hline(yintercept=cutoff_cum, linetype="dashed") 
+get_keywords(reduce_graph(mend_graph, cutoff_cum))
+
+# change points #
+cutoff_change <- find_cutoff(mend_graph, method="changepoint", knot_num=3)
+cutoff_fig +
+  geom_hline(yintercept=cutoff_change, linetype="dashed")
+g_redux <- reduce_graph(mend_graph, cutoff_change[1])
+searchterms <- get_keywords(g_redux)
+exterms <- c(
+  "vegetation",
+  "biome",
+  "homo*"
+)
+
+searchterms <- c(searchterms, exterms)
+
+# export identified search terms as .csv and create concept groups #
+write.csv(searchterms, "./search_terms_mend.csv")
+# read in grouped terms #
+grouped_terms <- read.csv("./grouped_terms_mend.csv") 
+# create list of terms by group and write into one data frame #
+time <- grouped_terms %>% filter(group =='1')  
+location <- grouped_terms %>% filter(group =='2') 
+human <- grouped_terms %>% filter(group =='3') 
+proxy <- grouped_terms %>% filter(group =='4') 
+climate <- grouped_terms %>% filter(group =='5')
+time <- time %>% select(x) 
+location <- location %>% select(x)  
+human <- human %>% select(x) 
+proxy <- proxy %>% select(x) 
+climate <- climate %>% select(x)
+mysearchterms <- list(time, location, human, proxy, climate) 
+### [[1]] time, [[2]] place, [[3]] human, [[4]] proxy, [[5]] climate
+# write search  - couldn't get package function to work so wrote manually in notepad # 
+ 
+#checking search 
+dir.create('mysearchdir')   
+retrieved_articles <-litsearchr::import_results(directory = 'mysearchdir', verbose = TRUE)
+retrieved_articles <-litsearchr::remove_duplicates(retrieved_articles, field = "title", method = "string_osa")  
+gold_standard <-
+  c(
+    "Environmental drivers of megafauna and hominin extinction in Southeast Asia",
+    "Alternating high and low climate variability: The context of natural selection and speciation in Plio-Pleistocene hominin evolution",
+    "Early Pleistocene Faunal Connections Between Africa and Eurasia: An Ecological Perspective"
+  ) 
+articles_found <- litsearchr::check_recall(true_hits = gold_standard,
+                                           retrieved = retrieved_articles$title) 
+
+common_titles <- (mendeley$title %in% retrieved_articles$title) 
+count(common_titles, var = TRUE) 
+summary(common_titles) 
