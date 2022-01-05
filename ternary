@@ -30,8 +30,8 @@ vars1 <- cbind(regionagg, vars1)
 #spain#  
 spdat <- dat %>% filter(dat$Country=='Guadix Baza')
 spgrass <- spdat$grassland + spdat$water.edge + spdat$steppe + spdat$wetland
-spinter <- spdat$shrubland + spdat$savanna
-spfores <- spdat$woodland + spdat$forest
+spinter <- spdat$shrubland + spdat$savanna +spdat$woodland
+spfores <- spdat$forest
 spvars <- data.frame(spgrass, spinter, spfores) 
 spsite <- spdat %>% select((2))  
 spvars <- cbind(spsite,spvars)
@@ -39,14 +39,14 @@ spvars <- cbind(spsite,spvars)
 nwandat <- dat %>% filter(dat$Country=='China')
 nwandat <- nwandat %>% filter(!nwandat$site == 'Yuanmou') 
 nwangrass <- nwandat$grassland + nwandat$water.edge + nwandat$steppe + nwandat$wetland
-nwaninter <- nwandat$shrubland + nwandat$savanna
-nwanfores <-  nwandat$forest + nwandat$woodland
+nwaninter <- nwandat$shrubland + nwandat$savanna + nwandat$woodland
+nwanfores <-  nwandat$forest 
 nwanvars <- data.frame (nwangrass, nwaninter, nwanfores)
 #georgia#  
 dmandat <- dat %>% filter(dat=='Georgia')
 dmangrass <- dmandat$grassland + dmandat$water.edge + dmandat$steppe + dmandat$wetland
-dmaninter <- dmandat$shrubland + dmandat$savanna
-dmanfores <- dmandat$forest +dmandat$woodland
+dmaninter <- dmandat$shrubland + dmandat$savanna +dmandat$woodland
+dmanfores <- dmandat$forest 
 dmanvars <- data.frame (dmangrass, dmaninter, dmanfores)
 
 
@@ -92,5 +92,4 @@ dmanplot <- ggtern(data=dmanvars, aes(x=dmangrass, y=dmanfores, z=dmaninter))+
   theme_showarrows()+ theme_notitles()+
   theme(text = element_text(size=20), legend.position = c(0,1), legend.justification = c(1,2),  
         tern.axis.text.T=element_text(hjust= -0.25),tern.axis.text.L=element_text(hjust=1), tern.axis.text.R=element_text(vjust = 1.5),
-        tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1)) 
-
+        tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1))
