@@ -1,0 +1,185 @@
+setwd('~/Review - Homo E/homo_review')  
+library(easypackages)  
+libraries('dplyr', 'tidyverse', 'corrplot', 'ggplot2', 'RColorBrewer', 'ggtern') 
+ 
+corp <- read.csv('./harch_raw.csv') 
+dat<- corp %>% select(-(1:8))    
+site <- corp %>% select ((7))  
+country <- corp %>% select((6))
+row.names(dat)<- corp$paperid   
+dat <- cbind(site,dat) 
+agdat <- aggregate(dat, by=list(dat$site), FUN=mean) 
+agdat <- agdat %>% select(-(2)) 
+row.names(agdat) <- agdat$Group.1 
+agdat2 <- agdat %>% select(-(1))  
+#manually add regions because aggregating f**ks it up #
+regionagg <- read.csv('./region.csv') 
+agdat2 <- cbind(regionagg,agdat2)
+grass <- agdat2$grassland + agdat2$water.edge + agdat2$steppe + agdat2$wetland 
+ 
+## correlation matrix## 
+mat <- cor(dat) 
+corrplot(mat, method='circle', type = 'upper')  
+corrplot (mat, method='pie',type='upper')
+ 
+##woodland with intermediate## 
+grass1 <- grass
+inter1 <- agdat2$shrubland + agdat2$savannah + agdat2$woodland 
+fores1 <- agdat2$forest 
+vars1 <- data.frame(grass1,inter1,fores1)  
+row.names(vars1)<- agdat$Group.1  
+vars1 <- cbind(regionagg, vars1)
+ 
+#add country back to dat# 
+dat<- cbind(country, dat)
+#spain#  
+spdat <- dat %>% filter(dat$Country=='Guadix Baza')
+spgrass <- spdat$grassland + spdat$water.edge + spdat$steppe + spdat$wetland
+spinter <- spdat$shrubland + spdat$savannah +spdat$woodland
+spfores <- spdat$forest
+spvars <- data.frame(spgrass, spinter, spfores) 
+spsite <- spdat %>% select((2))  
+spvars <- cbind(spsite,spvars)
+#nihewan#  
+nwandat <- dat %>% filter(dat$Country=='China')
+nwandat <- nwandat %>% filter(!nwandat$site == 'Yuanmou') 
+nwangrass <- nwandat$grassland + nwandat$water.edge + nwandat$steppe + nwandat$wetland
+nwaninter <- nwandat$shrubland + nwandat$savannah + nwandat$woodland
+nwanfores <-  nwandat$forest 
+nwanvars <- data.frame (nwangrass, nwaninter, nwanfores)
+#georgia#  
+dmandat <- dat %>% filter(dat=='Georgia')
+dmangrass <- dmandat$grassland + dmandat$water.edge + dmandat$steppe + dmandat$wetland
+dmaninter <- dmandat$shrubland + dmandat$savannah +dmandat$woodland
+dmanfores <- dmandat$forest 
+dmanvars <- data.frame (dmangrass, dmaninter, dmanfores)
+
+
+##ggtern##  
+mainplot1 <- ggtern(data=vars1, aes(x=grass1, y=fores1, z=inter1))+ 
+  geom_point(aes(fill= region), 
+size=6, shape=24, color='black') +   
+  ggtitle('All Sites1')+
+  labs(fill='Region') + scale_fill_brewer(palette = 'Paired')+
+  labs(xarrow= 'Grassland', yarrow= 'Forest', zarrow='Intermediate')+ 
+  theme_bw()+ theme_nomask() + 
+  theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
+  theme(text = element_text(size=25), legend.position = c(0,1), legend.justification = c(1,2),  
+        tern.axis.text.T=element_text(hjust= -0.25),tern.axis.text.L=element_text(hjust=1), tern.axis.text.R=element_text(vjust = 1.5),
+        tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1)) 
+ 
+spplot1 <- ggtern(data=spvars, aes(x=spgrass, y=spfores, z=spinter))+ 
+  geom_point(aes(fill= site), 
+             size=6, shape=24, color='black') +   
+  ggtitle('Guadix Baza 1')+
+  labs(fill='Region') + scale_fill_brewer(palette = 'Paired')+
+  labs(xarrow= 'Grassland', yarrow= 'Forest', zarrow='Intermediate')+ 
+  theme_bw()+ theme_nomask() + 
+  theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
+  theme(text = element_text(size=25), legend.position = c(0,1), legend.justification = c(1,2),  
+        tern.axis.text.T=element_text(hjust= -0.25),tern.axis.text.L=element_text(hjust=1), tern.axis.text.R=element_text(vjust = 1.5),
+        tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1)) 
+
+ 
+nwanplot1 <- ggtern(data=nwanvars, aes(x=nwangrass, y=nwanfores, z=nwaninter))+ 
+  geom_point(size=6, shape=17, colour='Orange') +  
+  ggtitle('Nihewan 1')+
+  labs(fill='Region') + scale_fill_brewer(palette = 'Paired')+
+  labs(xarrow= 'Grassland', yarrow= 'Forest', zarrow='Ipntermediate')+ 
+  theme_bw()+ theme_nomask() + 
+  theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
+  theme(text = element_text(size=25), legend.position = c(0,1), legend.justification = c(1,2),  
+        tern.axis.text.T=element_text(hjust= -0.25),tern.axis.text.L=element_text(hjust=1), tern.axis.text.R=element_text(vjust = 1.5),
+        tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1)) 
+   
+dmanplot1 <- ggtern(data=dmanvars, aes(x=dmangrass, y=dmanfores, z=dmaninter))+ 
+  geom_point(size=6, shape=17, color='Purple') +  
+  ggtitle('Dmanisi 1')+
+  labs(fill='Region') + scale_fill_brewer(palette = 'Paired')+
+  labs(xarrow= 'Grassland', yarrow= 'Forest', zarrow='Intermediate')+ 
+  theme_bw()+ theme_nomask() + 
+  theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
+  theme(text = element_text(size=25), legend.position = c(0,1), legend.justification = c(1,2),  
+        tern.axis.text.T=element_text(hjust= -0.25),tern.axis.text.L=element_text(hjust=1), tern.axis.text.R=element_text(vjust = 1.5),
+        tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1)) 
+ 
+## woodland with forest ##  
+grass2 <- grass
+inter2 <- agdat2$shrubland + agdat2$savannah 
+fores2 <- agdat2$forest + agdat2$woodland 
+vars2 <- data.frame(grass2,inter2,fores2)  
+row.names(vars2)<- agdat$Group.1  
+vars2<- cbind(regionagg, vars2)
+
+#add country back to dat# 
+dat<- cbind(country, dat)
+#spain#  
+spdat2<- dat %>% filter(dat$Country=='Guadix Baza')
+spgrass2<- spdat$grassland + spdat$water.edge + spdat$steppe + spdat$wetland
+spinter2<- spdat$shrubland + spdat$savannah 
+spfores2<- spdat$forest+spdat$woodland
+spvars2<- data.frame(spgrass2,spinter2,spfores2)
+spsite<- spdat %>% select((2))  
+spvars2<- cbind(spsite,spvars2)
+#nihewan#  
+nwandat2<- dat %>% filter(dat$Country=='China')
+nwandat2<- nwandat %>% filter(!nwandat$site == 'Yuanmou') 
+nwangrass2<- nwandat$grassland + nwandat$water.edge + nwandat$steppe + nwandat$wetland
+nwaninter2<- nwandat$shrubland + nwandat$savannah 
+nwanfores2<-  nwandat$forest + nwandat$woodland
+nwanvars2<- data.frame (nwangrass2,nwaninter2,nwanfores2)
+#georgia#  
+dmandat2<- dat %>% filter(dat=='Georgia')
+dmangrass2<- dmandat$grassland + dmandat$water.edge + dmandat$steppe + dmandat$wetland
+dmaninter2<- dmandat$shrubland + dmandat$savannah +dmandat$woodland
+dmanfores2<- dmandat$forest +dmandat$woodland
+dmanvars2<- data.frame (dmangrass2,dmaninter2,dmanfores2)
+
+
+##ggtern##  
+mainplot2 <- ggtern(data=vars2, aes(x=grass2, y=fores2, z=inter2))+ 
+  geom_point(aes(fill= region), 
+             size=6, shape=24, color='black') +  
+  ggtitle('All Sites2')+
+  labs(fill='Region') + scale_fill_brewer(palette = 'Paired')+
+  labs(xarrow= 'Grassland', yarrow= 'Forest', zarrow='Intermediate')+ 
+  theme_bw()+ theme_nomask() + 
+  theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
+  theme(text = element_text(size=25), legend.position = c(0,1), legend.justification = c(1,2),  
+        tern.axis.text.T=element_text(hjust= -0.25),tern.axis.text.L=element_text(hjust=1), tern.axis.text.R=element_text(vjust = 1.5),
+        tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1)) 
+
+spplot2 <- ggtern(data=spvars2,aes(x=spgrass2,y=spfores2,z=spinter2))+
+  geom_point(aes(fill= site), 
+             size=6, shape=24, color='black') +  
+  ggtitle('Guadix Baza 2')+
+  labs(fill='Region') + scale_fill_brewer(palette = 'Paired')+
+  labs(xarrow= 'Grassland', yarrow= 'Forest', zarrow='Intermediate')+ 
+  theme_bw()+ theme_nomask() + 
+  theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
+  theme(text = element_text(size=25), legend.position = c(0,1), legend.justification = c(1,2),  
+        tern.axis.text.T=element_text(hjust= -0.25),tern.axis.text.L=element_text(hjust=1), tern.axis.text.R=element_text(vjust = 1.5),
+        tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1)) 
+
+
+nwanplot2 <- ggtern(data=nwanvars2,aes(x=nwangrass2,y=nwanfores2,z=nwaninter2))+
+  geom_point(size=6, shape=17, colour='Orange') +  
+  ggtitle('Nihewan 2')+
+  labs(fill='Region') + scale_fill_brewer(palette = 'Paired')+
+  labs(xarrow= 'Grassland', yarrow= 'Forest', zarrow='Ipntermediate')+ 
+  theme_bw()+ theme_nomask() + 
+  theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
+  theme(text = element_text(size=25), legend.position = c(0,1), legend.justification = c(1,2),  
+        tern.axis.text.T=element_text(hjust= -0.25),tern.axis.text.L=element_text(hjust=1), tern.axis.text.R=element_text(vjust = 1.5),
+        tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1)) 
+
+dmanplot2 <- ggtern(data=dmanvars2,aes(x=dmangrass2,y=dmanfores2,z=dmaninter2))+
+  geom_point(size=6, shape=17, color='Purple') +  
+  ggtitle('Dmanisi 2')+
+  labs(fill='Region') + scale_fill_brewer(palette = 'Paired')+
+  labs(xarrow= 'Grassland', yarrow= 'Forest', zarrow='Intermediate')+ 
+  theme_bw()+ theme_nomask() + 
+  theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
+  theme(text = element_text(size=25), legend.position = c(0,1), legend.justification = c(1,2),  
+        tern.axis.text.T=element_text(hjust= -0.25),tern.axis.text.L=element_text(hjust=1), tern.axis.text.R=element_text(vjust = 1.5),
+        tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1)) 
