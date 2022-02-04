@@ -1,0 +1,37 @@
+library(ggplot2)
+library(ggfortify) 
+
+#Load data
+data <-read.csv('./harch_raw.csv') 
+dat<-data[,c(9:16)]
+ 
+#7 E VARS
+PCA <- autoplot(prcomp(dat), data = data, frame=FALSE, loadings = TRUE, loadings.colour = 'black', loadings.label = TRUE, loadings.label.colour = 'black') + theme_classic()
+PCA <- PCA + theme(legend.position = 'bottom')
+PCA  
+ 
+pcastats<-princomp(dat, cor = F, scores = T) 
+summary(pcastats)
+ 
+#COMBINE VARS 
+open1 <- data$grassland + data$steppe + data$wetland + data$water.edge + data$savannah
+inter1 <- data$shrubland
+close1 <- data$forest + data$woodland  
+vars1 <- data.frame(open1, inter1, close1)
+ 
+open2 <- data$grassland + data$steppe + data$wetland + data$water.edge 
+inter2 <- data$shrubland + data$savannah 
+close2 <- data$forest + data$woodland 
+vars2 <- data.frame(open2, inter2, close2)
+ 
+#combined vars pcas   
+PCA1 <- autoplot(prcomp(vars1), data = vars1, frame=FALSE, loadings = TRUE, loadings.colour = 'black', loadings.label = TRUE, loadings.label.colour = 'black') + theme_classic()
+PCA1 <- PCA1 + theme(legend.position = 'bottom')
+PCA1  
+ 
+PCA2 <- autoplot(prcomp(vars2), data = vars2, frame=FALSE, loadings = TRUE, loadings.colour = 'black', loadings.label = TRUE, loadings.label.colour = 'black') + theme_classic()
+PCA2 <- PCA2 + theme(legend.position = 'bottom')
+PCA2 
+ 
+pcastats<-princomp(vars2, cor = F, scores = T) 
+summary(pcastats)
