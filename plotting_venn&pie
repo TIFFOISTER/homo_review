@@ -1,4 +1,3 @@
-setwd('~/Review - Homo E/homo_review')  
 library(easypackages)  
 libraries('dplyr', 'tidyverse', 'ggplot2', 'RColorBrewer', 'venn', 'VennDiagram')   
  
