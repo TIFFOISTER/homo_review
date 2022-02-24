@@ -1,11 +1,6 @@
-setwd('~/Review - Homo E/homo_review')  
-library(litsearchr)  
-library(tidyverse) 
-library(dplyr) 
-library(ggplot2) 
-library(readr) 
-library(ggraph) 
-library(igraph)
+library(easypackages)  
+libraries('litsearchr', 'tidyverse', 'dplyr', 'ggplot2', 'readr', 'ggraph', 'igraph') 
+
 # importing mendeley library and substituting for naive search #
 mendeley <-litsearchr::import_results(directory = 'mendeleylib', verbose = TRUE)
 mendeley <-litsearchr::remove_duplicates(mendeley, field = "title", method = "string_osa") 
@@ -89,7 +84,7 @@ proxy <- proxy %>% select(x)
 climate <- climate %>% select(x)
 mysearchterms <- list(time, location, human, proxy, climate) 
 ### [[1]] time, [[2]] place, [[3]] human, [[4]] proxy, [[5]] climate
-# write search  - couldn't get package function to work so wrote manually in notepad # 
+# write search  - wrote manually in notepad # 
  
 #checking search 
 dir.create('mysearchdir')   
