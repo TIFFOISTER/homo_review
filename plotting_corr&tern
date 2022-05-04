@@ -19,7 +19,41 @@ grass <- agdat2$grassland + agdat2$water.edge + agdat2$steppe + agdat2$wetland
 ## correlation matrix## 
 mat <- cor(dat) 
 corrplot(mat, method='circle', type = 'upper')  
-corrplot (mat, method='pie',type='upper')
+corrplot (mat, method='pie',type='upper') 
+
+## generating random correlation to test synonyms## 
+n_labels <- 8
+n_documents <- 94
+n_cik <- 1000
+prob_labels <- c(0.11, 0.38, 0.33, 0.14, 0.01, 0.02, 0.005, 0.005)
+#prob_labels <- c(0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.93)
+
+set.seed(1981)
+
+cors_all <- c()
+
+for (cik in 1:n_cik){
+  data_corpus <- c()
+  
+  for (sk in 1:n_documents){  
+    locality_now <- rep(0, n_labels)  
+    n_active_labels <- sample(1:n_labels,1,prob= prob_labels)
+    #print(n_active_labels)
+    strength_array <- sample(1:3,n_active_labels,replace = TRUE)
+    ind_active <- sample(1:n_labels,n_active_labels,replace = FALSE)
+    locality_now[ind_active] <- strength_array
+    locality_now <- locality_now/sum(locality_now) 
+    data_corpus <- rbind(data_corpus,locality_now)
+  }
+  corrs <- cor(data_corpus)
+  cors_all <- c(cors_all,corrs[1,2])
+}
+
+mn_cors <- round(mean(cors_all),digits = 3)
+sd_cors <- round(sd(cors_all),digits = 3)
+
+print(paste('Mean correlation baseline',mn_cors))
+print(paste('St. dev. correlation baseline',sd_cors))
  
 ##savannah with open## 
 open1 <- grass + agdat2$savannah
