@@ -5,6 +5,6 @@
 # 3 = clusteranalysis&validation -- preliminary anaylsis
 # 4 =  plotting_venn&pie -- preliminary anaylsis
 # 5 = plotting_corr&tern -- data visualization 
-# 6 = PCA 
+
   ## the prelimnary analyses are not referenced in the paper.
   ## N.B/ this review involved a lot of manual data manipulation/preparation/cleaning in excel/out of R which is detailed where possible ## 
