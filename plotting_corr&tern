@@ -166,7 +166,7 @@ sadat <- dat %>% filter(dat$region=='S  Africa')
 sadat <- sadat %>% select(-(1))
 nadat <- dat %>% filter (dat$region =='N  Africa')
 nadat <- nadat %>% select(-1) 
-afdat <- rbind(EAdat,SADAT, NADAT) 
+afdat <- rbind(eadat,sadat, nadat) 
 afdat <- afdat %>% select(-(site))
  
 afgrass <- afdat$grassland + afdat$water.edge + afdat$steppe + afdat$wetland
