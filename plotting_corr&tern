@@ -161,7 +161,7 @@ dat <-  cbind(region, dat)
 
 #e,n,s africa #  
 eadat <- dat %>% filter(dat$region=='E  Africa')  
-eadat <- EAdat %>% select (-(1))  
+eadat <- eadat %>% select (-(1))  
 sadat <- dat %>% filter(dat$region=='S  Africa') 
 sadat <- sadat %>% select(-(1))
 nadat <- dat %>% filter (dat$region =='N  Africa')
