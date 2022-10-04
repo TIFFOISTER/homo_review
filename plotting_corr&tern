@@ -154,6 +154,113 @@ dmanplot1 <- ggtern(data=dmanvars, aes(x=dmanopen, y=dmanclose, z=dmaninter))+
   theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
   theme(text = element_text(size=25), legend.position = c(0,1), legend.justification = c(1,2),  
         tern.axis.text.T=element_text(hjust= -0.25),tern.axis.text.L=element_text(hjust=1), tern.axis.text.R=element_text(vjust = 1.5),
+        tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1))  
+         
+# making plot for georegions #  NB to patchwork ternary plots you need to input coordinates, so we did it manually# 
+dat <-  cbind(region, dat)
+
+#e,n,s africa #  
+eadat <- dat %>% filter(dat$region=='E  Africa')  
+eadat <- EAdat %>% select (-(1))  
+sadat <- dat %>% filter(dat$region=='S  Africa') 
+sadat <- sadat %>% select(-(1))
+nadat <- dat %>% filter (dat$region =='N  Africa')
+nadat <- nadat %>% select(-1) 
+afdat <- rbind(EAdat,SADAT, NADAT) 
+afdat <- afdat %>% select(-(site))
+ 
+afgrass <- afdat$grassland + afdat$water.edge + afdat$steppe + afdat$wetland
+afinter <- afdat$shrubland + afdat$savannah 
+affores <- afdat$forest+afdat$woodland 
+afvars <- data.frame(afgrass, afinter, affores) 
+
+#caucasus & levant#  
+cauc <- dat %>% filter(dat$region=='Caucasus')  
+cauc <- cauc %>% select (-(1)) 
+lev <- dat %>% filter(dat$region=='Levant') 
+lev<- lev %>% select (-(1)) 
+cldat <- rbind(cauc, lev) 
+medat<- medat %>% select(-(site)) 
+
+clgrass <- cldat$grassland + cldat$water.edge + cldat$steppe + cldat$wetland
+clinter <- cldat$shrubland + cldat$savannah 
+clfores <- cldat$forest+cldat$woodland 
+clvars <- data.frame(clgrass, clinter, clfores) 
+  
+# e,s,se asia # 
+eas <- dat %>% filter(dat$region=='E  Asia')  
+eas<- eas %>% select (-(1))   
+sas <- dat %>% filter(dat$region=='S  Asia')  
+sas<- sas %>% select (-(1))   
+seas <- dat %>% filter(dat$region=='SE  Asia')  
+seas<- seas %>% select (-(1)) 
+asdat <- rbind(eas,sas,seas) 
+asdat<- asdat %>% select(-(site)) 
+
+asgrass <- asdat$grassland + asdat$water.edge + asdat$steppe + asdat$wetland
+asinter <- asdat$shrubland + asdat$savannah 
+asfores <- asdat$forest+asdat$woodland 
+asvars <- data.frame(asgrass, asinter, asfores) 
+ 
+#e,w europe #   
+eeur <- dat %>% filter(dat$region=='E  Europe')  
+eeur <- eeur %>% select (-(1)) 
+weur <- dat %>% filter(dat$region=='W  Europe') 
+weur<- weur %>% select (-(1)) 
+eurdat <- rbind(eeur, weur) 
+eurdat<- eurdat %>% select(-(site))  
+
+eurgrass <- eurdat$grassland + eurdat$water.edge + eurdat$steppe + eurdat$wetland
+eurinter <- eurdat$shrubland + eurdat$savannah 
+eurfores <- eurdat$forest+eurdat$woodland 
+eurvars <- data.frame(eurgrass, eurinter, eurfores)  
+
+#plots# 
+
+africa <- ggtern(data=afvars, aes(x=afgrass, y=affores, z=afinter))+ 
+  geom_point(size=6, shape=17, colour='Light Green') +  
+  ggtitle('A')+
+  labs(fill='Region') + scale_fill_brewer(palette = 'Paired')+
+  labs(xarrow= 'Open', yarrow= 'Closed', zarrow='Intermediate')+ 
+  theme_bw()+ theme_nomask() + 
+  theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
+  theme(text = element_text(size=25), legend.position = c(0,1), legend.justification = c(1,2),  
+        tern.axis.text.T=element_text(hjust= -0.25),tern.axis.text.L=element_text(hjust=1), tern.axis.text.R=element_text(vjust = 1.5),
         tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1)) 
+
+cauclev <- ggtern(data=clvars, aes(x=clgrass, y=clfores, z=clinter))+ 
+  geom_point(size=6, shape=17, colour='Light Blue') +  
+  ggtitle('B')+
+  labs(fill='Region') + scale_fill_brewer(palette = 'Paired')+
+  labs(xarrow= 'Open', yarrow= 'Closed', zarrow='Intermediate')+ 
+  theme_bw()+ theme_nomask() + 
+  theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
+  theme(text = element_text(size=25), legend.position = c(0,1), legend.justification = c(1,2),  
+        tern.axis.text.T=element_text(hjust= -0.25),tern.axis.text.L=element_text(hjust=1), tern.axis.text.R=element_text(vjust = 1.5),
+        tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1))  
+
+asia <- ggtern(data=asvars, aes(x=asgrass, y=asfores, z=asinter))+ 
+  geom_point(size=6, shape=17, colour='Pink') +  
+  ggtitle('C')+
+  labs(fill='Region') + scale_fill_brewer(palette = 'Paired')+
+  labs(xarrow= 'Open', yarrow= 'Closed', zarrow='Intermediate')+ 
+  theme_bw()+ theme_nomask() + 
+  theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
+  theme(text = element_text(size=25), legend.position = c(0,1), legend.justification = c(1,2),  
+        tern.axis.text.T=element_text(hjust= -0.25),tern.axis.text.L=element_text(hjust=1), tern.axis.text.R=element_text(vjust = 1.5),
+        tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1))  
+
+europe <- ggtern(data=eurvars, aes(x=eurgrass, y=eurfores, z=eurinter))+ 
+  geom_point(size=6, shape=17, colour='Red') +  
+  ggtitle('D')+
+  labs(fill='Region') + scale_fill_brewer(palette = 'Paired')+
+  labs(xarrow= 'Open', yarrow= 'Closed', zarrow='Intermediate')+ 
+  theme_bw()+ theme_nomask() + 
+  theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
+  theme(text = element_text(size=25), legend.position = c(0,1), legend.justification = c(1,2),  
+        tern.axis.text.T=element_text(hjust= -0.25),tern.axis.text.L=element_text(hjust=1), tern.axis.text.R=element_text(vjust = 1.5),
+        tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1)) 
+
+
  
 
