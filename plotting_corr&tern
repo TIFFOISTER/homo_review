@@ -55,111 +55,54 @@ sd_cors <- round(sd(cors_all),digits = 3)
 print(paste('Mean correlation baseline',mn_cors))
 print(paste('St. dev. correlation baseline',sd_cors))
  
-##savannah with open## 
-open1 <- grass + agdat2$savannah
-inter1 <- agdat2$shrubland 
-close1 <- agdat2$forest + agdat2$woodland
-vars1 <- data.frame(open1,inter1,close1)  
-row.names(vars1)<- agdat$Group.1  
-vars1 <- cbind(regionagg, vars1) 
+ ##NB I reload 'dat' between each figure because different data categories are needed for each plot## 
+#FIGURE 2 #   
+grassa <- grass + agdat2$Savannah 
+intera <- agdat2$Shrubland 
+foresa <- agdat2$Forest + agdat2$Woodland
+varsa <- data.frame(grassa,intera,foresa)  
+row.names(varsa)<- agdat$Group.1  
+varsa <- cbind(regionagg, varsa) 
  
- ## savannah with inter ##  
-open2 <- grass
-inter2 <- agdat2$shrubland + agdat2$savannah 
-close2 <- agdat2$forest + agdat2$woodland 
-vars2 <- data.frame(open2,inter2,close2)  
-row.names(vars2)<- agdat$Group.1  
-vars2<- cbind(regionagg, vars2)
- 
-#add country back to dat# 
-dat<- cbind(country, dat)
-#spain#  
-spdat <- dat %>% filter(dat$Country=='Guadix Baza')
-spopen <- spdat$grassland + spdat$water.edge + spdat$steppe + spdat$wetland
-spinter <- spdat$shrubland + spdat$savannah 
-spclose <- spdat$forest +spdat$woodland
-spvars <- data.frame(spopen, spinter, spclose) 
-spsite <- spdat %>% select((2))  
-spvars <- cbind(spsite,spvars)
-#nihewan#  
-nwandat <- dat %>% filter(dat$Country=='China')
-nwandat <- nwandat %>% filter(!nwandat$site == 'Yuanmou') 
-nwanopen <- nwandat$grassland + nwandat$water.edge + nwandat$steppe + nwandat$wetland
-nwaninter <- nwandat$shrubland + nwandat$savannah 
-nwanclose <-  nwandat$forest + nwandat$woodland
-nwanvars <- data.frame (nwanopen, nwaninter, nwanclose)
-#georgia#  
-dmandat <- dat %>% filter(dat=='Georgia')
-dmanopen<- dmandat$grassland + dmandat$water.edge + dmandat$steppe + dmandat$wetland
-dmaninter <- dmandat$shrubland + dmandat$savannah
-dmanclose <- dmandat$forest +dmandat$woodland
-dmanvars <- data.frame (dmanopen, dmaninter, dmanclose)
+grassb <- grass
+interb <- agdat2$Shrubland + agdat2$Savannah 
+foresb <- agdat2$Forest + agdat2$Woodland
+varsb <- data.frame(grassb,interb,foresb)  
+row.names(varsb)<- agdat$Group.1  
+varsb <- cbind(regionagg, varsb)  
 
-
-##ggtern##  
-mainplot1 <- ggtern(data=vars1, aes(x=open1, y=close1, z=inter1))+ 
+plot2a <- ggtern(data=varsa, aes(x=grassa, y=foresa, z=intera))+ 
   geom_point(aes(fill= region), 
-size=6, shape=24, color='black') +   
-  ggtitle('All Sites1')+
-  labs(fill='Region') + scale_fill_brewer(palette = 'Paired')+
-  labs(xarrow= 'Open', yarrow= 'Closed', zarrow='Intermediate')+ 
-  theme_bw()+ theme_nomask() + 
-  theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
-  theme(text = element_text(size=25), legend.position = c(0,1), legend.justification = c(1,2),  
-        tern.axis.text.T=element_text(hjust= -0.25),tern.axis.text.L=element_text(hjust=1), tern.axis.text.R=element_text(vjust = 1.5),
-        tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1))  
-         
-mainplot2 <- ggtern(data=vars2, aes(x=open2, y=close2, z=inter2))+ 
-  geom_point(aes(fill= region), 
-size=6, shape=24, color='black') +   
-  ggtitle('All Sites2')+
-  labs(fill='Region') + scale_fill_brewer(palette = 'Paired')+
-  labs(xarrow= 'Open', yarrow= 'Closed', zarrow='Intermediate')+ 
-  theme_bw()+ theme_nomask() + 
-  theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
-  theme(text = element_text(size=25), legend.position = c(0,1), legend.justification = c(1,2),  
-        tern.axis.text.T=element_text(hjust= -0.25),tern.axis.text.L=element_text(hjust=1), tern.axis.text.R=element_text(vjust = 1.5),
-        tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1)) 
- 
-spplot1 <- ggtern(data=spvars, aes(x=spopen, y=spclose, z=spinter))+ 
-  geom_point(aes(fill= site), 
              size=6, shape=24, color='black') +   
-  ggtitle('Guadix Baza 1')+
-  labs(fill='Region') + scale_fill_brewer(palette = 'Paired')+
+  ggtitle('figure 2a')+
+  labs(fill='Region')+ scale_fill_manual(values = c('#8C29B6', '#7e0505', '#E24596',  '#18337D','#B186F7','#D02A0C','#F59250', '#FDC1C1', '#F090F6', '#6ACFE1'))+
   labs(xarrow= 'Open', yarrow= 'Closed', zarrow='Intermediate')+ 
   theme_bw()+ theme_nomask() + 
   theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
   theme(text = element_text(size=25), legend.position = c(0,1), legend.justification = c(1,2),  
         tern.axis.text.T=element_text(hjust= -0.25),tern.axis.text.L=element_text(hjust=1), tern.axis.text.R=element_text(vjust = 1.5),
         tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1)) 
-
  
-nwanplot1 <- ggtern(data=nwanvars, aes(x=nwanopen, y=nwanclose, z=nwaninter))+ 
-  geom_point(size=6, shape=17, colour='Orange') +  
-  ggtitle('Nihewan 1')+
-  labs(fill='Region') + scale_fill_brewer(palette = 'Paired')+
+plot2b <- ggtern(data=varsb, aes(x=grassb, y=foresb, z=interb))+ 
+  geom_point(aes(fill= region), 
+             size=6, shape=24, color='black') +   
+  ggtitle('figure 2b')+ scale_fill_manual(values = c('#8C29B6', '#7e0505', '#E24596',  '#18337D','#B186F7','#D02A0C','#F59250', '#FDC1C1', '#F090F6', '#6ACFE1'))+
+  labs(fill='Region')+
   labs(xarrow= 'Open', yarrow= 'Closed', zarrow='Intermediate')+ 
   theme_bw()+ theme_nomask() + 
   theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
   theme(text = element_text(size=25), legend.position = c(0,1), legend.justification = c(1,2),  
         tern.axis.text.T=element_text(hjust= -0.25),tern.axis.text.L=element_text(hjust=1), tern.axis.text.R=element_text(vjust = 1.5),
         tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1)) 
-   
-dmanplot1 <- ggtern(data=dmanvars, aes(x=dmanopen, y=dmanclose, z=dmaninter))+ 
-  geom_point(size=6, shape=17, color='Purple') +  
-  ggtitle('Dmanisi 1')+
-  labs(fill='Region') + scale_fill_brewer(palette = 'Paired')+
-  labs(xarrow= 'Open', yarrow= 'Closed', zarrow='Intermediate')+ 
-  theme_bw()+ theme_nomask() + 
-  theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
-  theme(text = element_text(size=25), legend.position = c(0,1), legend.justification = c(1,2),  
-        tern.axis.text.T=element_text(hjust= -0.25),tern.axis.text.L=element_text(hjust=1), tern.axis.text.R=element_text(vjust = 1.5),
-        tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1))  
-         
-# making plot for georegions #  NB to patchwork ternary plots you need to input coordinates, so we did it manually# 
-dat <-  cbind(region, dat)
 
+ggsave(plot2a, filename = "fig2a.png", bg = "transparent")  
+ggsave(plot2b, filename = "fig2b.png", bg = "transparent") 
+
+
+#FIGURE 3 #  
+dat <-  cbind(region, dat)
 #e,n,s africa #  
+
 eadat <- dat %>% filter(dat$region=='E  Africa')  
 eadat <- eadat %>% select (-(1))  
 sadat <- dat %>% filter(dat$region=='S  Africa') 
@@ -168,10 +111,10 @@ nadat <- dat %>% filter (dat$region =='N  Africa')
 nadat <- nadat %>% select(-1) 
 afdat <- rbind(eadat,sadat, nadat) 
 afdat <- afdat %>% select(-(site))
- 
-afgrass <- afdat$grassland + afdat$water.edge + afdat$steppe + afdat$wetland
-afinter <- afdat$shrubland + afdat$savannah 
-affores <- afdat$forest+afdat$woodland 
+
+afgrass <- afdat$Grassland + afdat$Water.Edge + afdat$Steppe + afdat$Wetland
+afinter <- afdat$Shrubland + afdat$Savannah 
+affores <- afdat$Forest+afdat$Woodland 
 afvars <- data.frame(afgrass, afinter, affores) 
 
 #caucasus & levant#  
@@ -180,13 +123,13 @@ cauc <- cauc %>% select (-(1))
 lev <- dat %>% filter(dat$region=='Levant') 
 lev<- lev %>% select (-(1)) 
 cldat <- rbind(cauc, lev) 
-medat<- medat %>% select(-(site)) 
+cldat<- cldat %>% select(-(site)) 
 
-clgrass <- cldat$grassland + cldat$water.edge + cldat$steppe + cldat$wetland
-clinter <- cldat$shrubland + cldat$savannah 
-clfores <- cldat$forest+cldat$woodland 
+clgrass <- cldat$Grassland + cldat$Water.Edge + cldat$Steppe + cldat$Wetland
+clinter <- cldat$Shrubland + cldat$Savannah 
+clfores <- cldat$Forest+cldat$Woodland 
 clvars <- data.frame(clgrass, clinter, clfores) 
-  
+
 # e,s,se asia # 
 eas <- dat %>% filter(dat$region=='E  Asia')  
 eas<- eas %>% select (-(1))   
@@ -197,11 +140,11 @@ seas<- seas %>% select (-(1))
 asdat <- rbind(eas,sas,seas) 
 asdat<- asdat %>% select(-(site)) 
 
-asgrass <- asdat$grassland + asdat$water.edge + asdat$steppe + asdat$wetland
-asinter <- asdat$shrubland + asdat$savannah 
-asfores <- asdat$forest+asdat$woodland 
+asgrass <- asdat$Grassland + asdat$Water.Edge + asdat$Steppe + asdat$Wetland
+asinter <- asdat$Shrubland + asdat$Savannah 
+asfores <- asdat$Forest+asdat$Woodland 
 asvars <- data.frame(asgrass, asinter, asfores) 
- 
+
 #e,w europe #   
 eeur <- dat %>% filter(dat$region=='E  Europe')  
 eeur <- eeur %>% select (-(1)) 
@@ -210,17 +153,17 @@ weur<- weur %>% select (-(1))
 eurdat <- rbind(eeur, weur) 
 eurdat<- eurdat %>% select(-(site))  
 
-eurgrass <- eurdat$grassland + eurdat$water.edge + eurdat$steppe + eurdat$wetland
-eurinter <- eurdat$shrubland + eurdat$savannah 
-eurfores <- eurdat$forest+eurdat$woodland 
+eurgrass <- eurdat$Grassland + eurdat$Water.Edge + eurdat$Steppe + eurdat$Wetland
+eurinter <- eurdat$Shrubland + eurdat$Savannah 
+eurfores <- eurdat$Forest+eurdat$Woodland 
 eurvars <- data.frame(eurgrass, eurinter, eurfores)  
 
 #plots# 
 
 africa <- ggtern(data=afvars, aes(x=afgrass, y=affores, z=afinter))+ 
-  geom_point(size=6, shape=17, colour='Light Green') +  
-  ggtitle('A')+
-  labs(fill='Region') + scale_fill_brewer(palette = 'Paired')+
+  geom_point(size=6, shape=17, colour='#D2001A') +  
+  ggtitle('N,E,S Africa')+
+  labs(fill='Region')+ scale_fill_manual(values = c('#D2001A'))+
   labs(xarrow= 'Open', yarrow= 'Closed', zarrow='Intermediate')+ 
   theme_bw()+ theme_nomask() + 
   theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
@@ -229,9 +172,9 @@ africa <- ggtern(data=afvars, aes(x=afgrass, y=affores, z=afinter))+
         tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1)) 
 
 cauclev <- ggtern(data=clvars, aes(x=clgrass, y=clfores, z=clinter))+ 
-  geom_point(size=6, shape=17, colour='Light Blue') +  
-  ggtitle('B')+
-  labs(fill='Region') + scale_fill_brewer(palette = 'Paired')+
+  geom_point(size=6, shape=17, colour='#1CD6CE') +  
+  ggtitle('Caucasus & Levant')+
+  labs(fill='Region')+ scale_fill_manual(values = c('#1CD6CE'))+
   labs(xarrow= 'Open', yarrow= 'Closed', zarrow='Intermediate')+ 
   theme_bw()+ theme_nomask() + 
   theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
@@ -240,9 +183,9 @@ cauclev <- ggtern(data=clvars, aes(x=clgrass, y=clfores, z=clinter))+
         tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1))  
 
 asia <- ggtern(data=asvars, aes(x=asgrass, y=asfores, z=asinter))+ 
-  geom_point(size=6, shape=17, colour='Pink') +  
-  ggtitle('C')+
-  labs(fill='Region') + scale_fill_brewer(palette = 'Paired')+
+  geom_point(size=6, shape=17, colour='#FF74B1') +  
+  ggtitle('E,S,SE Asia')+
+  labs(fill='Region')+ scale_fill_manual(values = c('#FF74B1'))+
   labs(xarrow= 'Open', yarrow= 'Closed', zarrow='Intermediate')+ 
   theme_bw()+ theme_nomask() + 
   theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
@@ -251,9 +194,97 @@ asia <- ggtern(data=asvars, aes(x=asgrass, y=asfores, z=asinter))+
         tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1))  
 
 europe <- ggtern(data=eurvars, aes(x=eurgrass, y=eurfores, z=eurinter))+ 
-  geom_point(size=6, shape=17, colour='Red') +  
-  ggtitle('D')+
-  labs(fill='Region') + scale_fill_brewer(palette = 'Paired')+
+  geom_point(size=6, shape=17, colour='#083AA9') +  
+  ggtitle('E & W Europe')+
+  labs(fill='Region')+ scale_fill_manual(values = c('#083AA9'))+
+  labs(xarrow= 'Open', yarrow= 'Closed', zarrow='Intermediate')+ 
+  theme_bw()+ theme_nomask() + 
+  theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
+  theme(text = element_text(size=25), legend.position = c(0,1), legend.justification = c(1,2),  
+        tern.axis.text.T=element_text(hjust= -0.25),tern.axis.text.L=element_text(hjust=1), tern.axis.text.R=element_text(vjust = 1.5),
+        tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1))
+
+ggsave(africa, filename = "fig3a.png", bg = "transparent")  
+ggsave(cauclev, filename = "fig3b.png", bg = "transparent")  
+ggsave(asia, filename = "fig3c.png", bg = "transparent")  
+ggsave(europe, filename = "fig3d.png", bg = "transparent") 
+
+#FIGURE 4# 
+dat <-  cbind(region, dat) 
+dat <- cbind(site,dat)
+EAdat <- dat %>% filter(dat$region=='E  Africa')  
+EAdat <- EAdat %>% select (-(2)) 
+# fix sites so all turkana ones combined# fix(EAdat)
+EAgrass <- EAdat$Grassland + EAdat$Water.Edge + EAdat$Steppe + EAdat$Wetland
+EAinter <- EAdat$Shrubland + EAdat$Savannah 
+EAfores <- EAdat$Forest+EAdat$Woodland
+EAvars <- data.frame(EAgrass, EAinter, EAfores) 
+EAsite <- EAdat %>% select((1))  
+EAvars <- cbind(EAsite,EAvars)  
+
+eafrica <- ggtern(data=EAvars, aes(x=EAgrass, y=EAfores, z=EAinter))+ 
+  geom_point(aes(fill= site), 
+             size=6, shape=24, color='black') +   
+  ggtitle('FIG4A')+
+  labs(fill='Region')+ scale_fill_manual(values = c('#583527', '#cc8a8a','#ac3b53','#facece','#f4642f','#ca1a1a'))+
+  labs(xarrow= 'Open', yarrow= 'Closed', zarrow='Intermediate')+ 
+  theme_bw()+ theme_nomask() + 
+  theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
+  theme(text = element_text(size=25), legend.position = c(0,1), legend.justification = c(1,2),  
+        tern.axis.text.T=element_text(hjust= -0.25),tern.axis.text.L=element_text(hjust=1), tern.axis.text.R=element_text(vjust = 1.5),
+        tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1)) 
+  
+dat <-  cbind(country, dat)  
+
+nwandat<- dat %>% filter(dat$Country=='China')
+nwandat<- nwandat %>% filter(!nwandat$site == 'Yuanmou') 
+nwangrass<- nwandat$Grassland + nwandat$Water.Edge + nwandat$Steppe + nwandat$Wetland
+nwaninter<- nwandat$Shrubland + nwandat$Savannah 
+nwanfores<-  nwandat$Forest + nwandat$Woodland
+nwanvars<- data.frame (nwangrass,nwaninter,nwanfores)
+ 
+nwan <- ggtern(data=nwanvars, aes(x=nwangrass, y=nwanfores, z=nwaninter))+ 
+  geom_point(size=6, shape=17, colour='#FF74B1') +  
+  ggtitle('FIG4C')+
+  labs(fill='Region')+ scale_fill_manual(values = c( '#FF74B1'))+
+  labs(xarrow= 'Open', yarrow= 'Closed', zarrow='Intermediate')+ 
+  theme_bw()+ theme_nomask() + 
+  theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
+  theme(text = element_text(size=25), legend.position = c(0,1), legend.justification = c(1,2),  
+        tern.axis.text.T=element_text(hjust= -0.25),tern.axis.text.L=element_text(hjust=1), tern.axis.text.R=element_text(vjust = 1.5),
+        tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1)) 
+
+ 
+dmandat<- dat %>% filter(dat=='Georgia')
+dmangrass<- dmandat$Grassland + dmandat$Water.Edge + dmandat$Steppe + dmandat$Wetland
+dmaninter<- dmandat$Shrubland + dmandat$Savannah 
+dmanfores<- dmandat$Forest +dmandat$Woodland 
+dmanvars<- data.frame (dmangrass,dmaninter,dmanfores)
+dman <- ggtern(data=dmanvars, aes(x=dmangrass, y=dmanfores, z=dmaninter))+ 
+  geom_point(size=6, shape=17, color='#1CD6CE') +  
+  ggtitle('PLOT4B')+
+  labs(fill='Region')+ scale_fill_manual(values = c( '1CD6CE'))+
+  labs(xarrow= 'Open', yarrow= 'Closed', zarrow='Intermediate')+ 
+  theme_bw()+ theme_nomask() + 
+  theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
+  theme(text = element_text(size=25), legend.position = c(0,1), legend.justification = c(1,2),  
+        tern.axis.text.T=element_text(hjust= -0.25),tern.axis.text.L=element_text(hjust=1), tern.axis.text.R=element_text(vjust = 1.5),
+        tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1)) 
+
+spdat<- dat %>% filter(dat$Country=='Guadix Baza') 
+spdat <- spdat %>% select (-(1))  
+spdat <- spdat %>% select (-(2)) 
+spgrass<- spdat$Grassland + spdat$Water.Edge + spdat$Steppe + spdat$Wetland
+spinter<- spdat$Shrubland + spdat$Savannah 
+spfores<- spdat$Forest+spdat$Woodland
+spvars<- data.frame(spgrass,spinter,spfores)
+spsite<- spdat %>% select((1))  
+spvars<- cbind(spsite,spvars) 
+gbaza <- ggtern(data=spvars, aes(x=spgrass, y=spfores, z=spinter))+ 
+  geom_point(aes(fill= site), 
+             size=6, shape=24, color='black') +   
+  ggtitle('fig4d')+
+  labs(fill='Site')+ scale_fill_manual(values = c( '#0d0c8f','#0eb5bd','#0012fb','#a9ecff','#0978f6'))+
   labs(xarrow= 'Open', yarrow= 'Closed', zarrow='Intermediate')+ 
   theme_bw()+ theme_nomask() + 
   theme_showarrows()+ theme_notitles()+ theme_arrowlong()+
@@ -262,5 +293,9 @@ europe <- ggtern(data=eurvars, aes(x=eurgrass, y=eurfores, z=eurinter))+
         tern.axis.arrow.text.T = element_text(vjust =-0.5), tern.axis.arrow.text.L = element_text(vjust =-0.5),tern.axis.arrow.text.R = element_text(vjust =1)) 
 
 
+ggsave(eafrica, filename = "fig4a.png", bg = "transparent")  
+ggsave(dman, filename = "fig4b.png", bg = "transparent")  
+ggsave(nwan, filename = "fig4c.png", bg = "transparent")  
+ggsave(gbaza, filename = "fig4d.png", bg = "transparent") 
  
 
