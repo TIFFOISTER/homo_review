@@ -1,0 +1,219 @@
+## Testing the significance of differences in
+## tree affinity between Africa and Eurasia 
+
+## Because our result might be sensitive to the fact that some sites have more 
+## reconstructions than others, the following permutation test tries to take
+## take that potential bias into account by sampling data sets so that only 
+## one reconstruction per site is taken in the data at a time. 
+
+## First, we need to do some data wrangling
+
+## Set the working directory
+cd("/path/to/your/working directory/")   
+
+## Libraries used in this script. 
+using CSV
+using DataFrames
+using Statistics, Distributions, Random
+using StatsBase
+using CairoMakie
+using CategoricalArrays
+
+## If not already installed, use Pkg ("using Pkg"), 
+## and install ("Pkg.add("name.of.the.package")")
+
+## download data
+df = DataFrame(CSV.File("./ephomohabitats.csv"))
+
+## Rename the first variable
+rename!(df, "Rec. N." => :RecNo)
+ 
+## Create a new variable called "Region"
+## Fill it with some string
+df.Region .= "Regio"
+
+## Use reconstruction number (basically row number) 
+## to recode
+df.Region[1 .<= df.RecNo .<= 44] .= "Africa"
+df.Region[45 .<= df.RecNo .<= 63] .= "LevCau"
+df.Region[64 .<= df.RecNo .<= 76] .= "Asia"
+df.Region[77 .<= df.RecNo .<= 121] .= "Europe"
+
+## Make region as a categorical and set the levels
+df.Region = categorical(df.Region)
+levels!(df.Region, ["Africa", "LevCau", "Asia", "Europe"])
+
+## Add variable that differentiates Africa and Eurasia
+df.Africa = recode(df.Region, "Africa" => "yes", "Asia" => "no", "LevCau" => "no",
+"Europe" => "no")
+
+## Reorder the data frame columns and leave the "Quote" variable out.
+df = select!(df, 
+["RecNo", "Africa", "Region", "Site", "Wetland", "Grassland", "Shrubland", "Mixed", "Woodland", "Forest"])
+
+## Transform scores into proportions
+df[!,5:10] = df[:,5:10] ./8
+
+## Add Tree affinity variable
+df.Treeaff = df.Shrubland * 0.25 + df.Forest * 1 + df.Grassland * 0.1 +  
+df.Mixed * 0.25 + df.Wetland * 0.1 + df.Woodland * 0.5
+
+
+## Function to sample grouped data frame. This function
+## samples grouped data frame so that each sample contains
+## one member (reconstruction) of the group (site). If there is
+## only one reconstruction from a site, it will always be in the 
+## sample
+
+take_a_sample(df::AbstractDataFrame, size) =
+    df[sample(axes(df, 1), size; replace = false, ordered = true), :]
+take_a_sample(gdf::GroupedDataFrame, size) =
+    combine(gdf, x -> take_a_sample(x, size))
+
+## Testing
+groupedDF = groupby(df,[:Site])
+sgd = take_a_sample(groupedDF, 1)
+
+######################################################################################
+######################################################################################
+######################################################################################
+## PERMUTATION TEST FOR DIFFERENCES IN THE RANGE OF TREE AFFINITY VALUES 
+## Permutation test for tree affinity tests how
+## likely it would be to get observed difference between Africa and Eurasia
+## in interquartile range (0.05, 0.95) just by chance. 
+
+## Sampling of the data is repeated nperm1 times and each iteration the data
+## is randomized nperm2 times to calculate the distribution random
+## differences. So althogether there will be nperm1 x nperm2
+## random differences to compare with the median of observed differences
+## Which is derived from each iteration of data 
+
+permtest = function(data, variab, nperm1, nperm2, quantiles=[0.05, 0.95])
+    res1 = Array{Float64}(undef, nperm1, 2)
+    res2 = Vector{Float64}()
+    gdf = groupby(data,[:Site])
+    if variab=="Treeaff"
+        q1 = quantiles[1]
+        q2 = quantiles[2]
+        for i in 1:nperm1
+            sgdf = take_a_sample(gdf, 1)
+            
+            ## Observed differences between Africa and the rest
+            difs1 = first(diff(quantile(sgdf.Treeaff[sgdf.Africa .== "no", :][:, 1], [q1, q2])) - 
+            diff(quantile(sgdf.Treeaff[sgdf.Africa .== "yes", :][:, 1], [q1, q2])))
+            
+            ## This is empty vector for collecting randomly generated differences
+            difs2 = Vector{Float64}(undef, nperm2)
+            
+            ## Shuffles nperm2 times the data frame and saves the difference
+            for j in 1:nperm2
+                bdat = transform(sgdf, :Treeaff => shuffle => :Treeaff)
+                difs2[j] = first(diff(quantile(bdat.Treeaff[bdat.Africa .== "no", :][:, 1], [q1, q2])) - 
+                diff(quantile(bdat.Treeaff[bdat.Africa .== "yes", :][:, 1], [q1, q2])))
+            end
+            
+            res1[i, 1] = difs1  ## stores the observed difference to the 1st column of res1
+            res1[i, 2] = sum(difs2 .>= difs1)/length(difs2) ## storing the p-value
+            res2 = vcat(res2, difs2) ## storing randomly generated differences (length(nperm2))
+            
+        end
+
+        ## plotting
+        theme = Attributes(
+            Axis = (
+                xminorticksvisible = true,
+                yminorticksvisible = true,
+                xminorgridvisible = true,
+                yminorgridvisible = true
+            )
+        )
+        f = with_theme(theme) do
+            f = Figure()
+            ax1 = Axis(f[1,1]; xlabel="Randomly generated differences", ylabel="Count")
+            hist!(ax1, res2)
+            xlims!(-0.8,0.8)
+            vlines!(ax1, median(res1[:, 1]), color="red")
+            ax2 = Axis(f[1,2]; xlabel="Observed differences", ylabel="Count")
+            hist!(ax2, res1[:, 1])
+            xlims!(-0.8,0.8)
+        
+            display(f)
+        end
+    else
+        for i in 1:nperm1
+            sgdf = take_a_sample(gdf, 1)
+            difs1 = median(sgdf.She[sgdf.Africa .== "yes", :]) - 
+            median(sgdf.She[sgdf.Africa .== "no", :])
+            
+            difs2 = Vector{Float64}(undef, nperm2)
+            
+            for j in 1:nperm2
+                bdat = transform(sgdf, :She => shuffle => :She)
+                difs2[j] = median(bdat.She[bdat.Africa .== "yes", :]) - 
+                median(bdat.She[bdat.Africa .== "no", :])
+            end
+            
+            res1[i, 1] = difs1
+            res1[i, 2] = sum(difs2 .>= difs1)/length(difs2)
+            res2 = vcat(res2, difs2)
+            
+        end
+
+        theme = Attributes(
+            Axis = (
+                xminorticksvisible = true,
+                yminorticksvisible = true,
+                xminorgridvisible = true,
+                yminorgridvisible = true
+            )
+        )
+        f = with_theme(theme) do
+            f = Figure()
+            ax1 = Axis(f[1,1]; xlabel="Randomly generated differences", ylabel="Count")
+            hist!(ax1, res2)
+            xlims!(-0.8,0.8)
+            vlines!(ax1, median(res1[:, 1]), color="red")
+            ax2 = Axis(f[1,2]; xlabel="Observed differences", ylabel="Count")
+            hist!(ax2, res1[:, 1])
+            xlims!(-0.8,0.8)
+        
+            display(f)
+        end
+    end
+
+    ## "average" p-value
+    pval = sum(res2 .>= median(res1[:, 1]))/length(res2)
+    ## proportion of p-values that are smaller than 0.05
+    probsig = sum(res1[:, 2] .< 0.05)/length(res1[:, 2])
+    return res1, res2, pval, probsig
+end
+
+##########################################
+## Apply the function
+
+## Set tne number of iterations
+## For the first run, it would be important to use
+## very small values such as 5, for both nperm values.
+## This is, because the precompilation takes time in Julia...
+## Only after you have run this preliminary test, 
+## increase the number of iterations
+nperm1=1000
+nperm2=10000
+
+## Run function
+ress = permtest(df, "Treeaff", nperm1, nperm2)
+
+## "average" p-value, i.e., the fraction of randomly generated differences (nperm1 x nperm2)
+## that are larger than the median of observed differences in nperm1 interations.
+ress[3]
+
+## Fraction of p-values smaller than 0.05
+ress[4]
+
+## Histogram of p-values
+hist(ress[1][:, 2])
+
+## Maximum p-value
+maximum(ress[1][:, 2])
+
+## END OF THE SCRIPT
