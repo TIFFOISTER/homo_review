@@ -1,0 +1,208 @@
+## Required packages
+library(ca) # for corresponsence analysis
+library(geometry) # for calculating convex hulls
+
+## Read the data
+data <- read.csv("~/pCloudDrive/projects/earlyhomenv/ephomohabitats.csv")
+
+## Rename the first variable
+names(data)[1] <- "RecNo"
+ 
+## Create a new variable called "Region"
+
+## Use reconstruction number (basically row number) 
+## to recode
+data$Region[data$RecNo >= 1 & data$RecNo <= 44] <- "Africa"
+data$Region[data$RecNo >= 45 & data$RecNo <= 63] <- "LevCau" ## Combined Levant and Caucasus
+data$Region[data$RecNo >= 64 & data$RecNo <= 76] <- "Asia"
+data$Region[data$RecNo >= 77 & data$RecNo <= 121] <- "Europe"
+
+
+## Factorise Region variable
+data$Region <- factor(data$Region, 
+levels=c("Africa","LevCau","Asia","Europe"))
+
+## order the data by factorised Region variable
+
+## Re-arrange variable a bit and leave the "Quote" variable out
+data2 <- subset(data, select=c("RecNo","Region", "Site", "Wetland", "Grassland",
+"Shrubland", "Mixed", "Woodland", "Forest"))
+
+
+## Transform vegetation scores to proportions
+data2[, 4:9] <- data2[, 4:9]/8
+
+
+## Check that everything is OK. The sum should be 121, which is the
+## number of individual reconstructions in the data (n. of rows in the data)
+sum(rowSums(data2[, 4:9]))
+
+## Preparations for barplots (see below)
+## Regional datasets for barplot
+dataAfr <- data2[data2$Region=="Africa", ]
+
+dataLeC <- data2[data2$Region=="LevCau", ]
+
+dataAsia <- data2[data2$Region=="Asia", ]
+
+dataEur <- data2[data2$Region=="Europe", ]
+
+## Select just vegetation categories 
+dataAfr2 <- dataAfr[, 4:9]
+dataLeC2 <- dataLeC[, 4:9]
+dataAsia2 <- dataAsia[, 4:9]
+dataEur2 <- dataEur[, 4:9]
+
+## Transpose datasets
+dataAfr2t <- as.data.frame(t(dataAfr2))
+colnames(dataAfr2t) <- dataAfr$RecNo
+dataAfr2t <- rev(dataAfr2t)
+dataAfr3 <- as.matrix(dataAfr2t)
+
+dataLeC2t <- as.data.frame(t(dataLeC2))
+colnames(dataLeC2t) <- dataLeC$RecNo
+dataLeC2t <- rev(dataLeC2t)
+dataLeC3 <- as.matrix(dataLeC2t)
+
+dataAsia2t <- as.data.frame(t(dataAsia2))
+colnames(dataAsia2t) <- dataAsia$RecNo
+dataAsia2t <- rev(dataAsia2t)
+dataAsia3 <- as.matrix(dataAsia2t)
+
+dataEur2t <- as.data.frame(t(dataEur2))
+colnames(dataEur2t) <- dataEur$RecNo
+dataEur2t <- rev(dataEur2t)
+dataEur3 <- as.matrix(dataEur2t)
+
+
+############################################
+## Correspondence analysis
+
+## Define the data for correspondence analysis
+## (just vegetation categories)
+dataca3 <- data2[,4:9]
+rownames(dataca3) <- data2$RecNo
+
+## Perform the analysis
+cares3 <- ca(dataca3)
+
+## Quick plot of the first two dimensions
+par(mfrow=c(1,1), mar=c(5,5,2,2))
+plot(cares3, dim=c(1,2), mass=c(FALSE, TRUE), arrows=c(FALSE, TRUE), map="rowgreen")
+
+summary(cares3)
+
+
+######################################################################
+## Compile a data suitable for plotting correspondence analysis results and
+## calculating convex hulls around regional points and sizes of convex hulls.
+
+cadata <- data.frame(Region=as.character(data2$Region), Dim1=cacoord(cares3, type="rowgreen")$rows[,1],
+Dim2=cacoord(cares3, type="rowgreen")$rows[,2],Dim3=cacoord(cares3, type="rowgreen")$rows[,3])
+
+## Set row names
+rownames(cadata) <- data2$RecNo
+
+## Regional data for convex hull calculation
+afri <- cadata[cadata$Region=="Africa", 2:3]
+eur <- cadata[cadata$Region=="Europe", 2:3]
+lec <- cadata[cadata$Region=="LevCau", 2:3]
+asia <- cadata[cadata$Region=="Asia", 2:3]
+eura <- cadata[cadata$Region=="Europe" | cadata$Region=="LevCau" | cadata$Region=="Asia", 2:3]
+
+## Convex hulls
+chafri <- convhulln(afri, output.options="FA")
+cheur <- convhulln(eur, output.options="FA")
+chlec <- convhulln(lec, output.options="FA")
+chasia <- convhulln(asia, output.options="FA")
+cheura <- convhulln(eura, output.options="FA")
+
+##########################################################
+##########################################################
+## Add tree affinity to the data
+data2$Treeaff <- data2$Shrubland * 0.25 + data2$Forest * 1 + data2$Grassland * 0.1 + 
+data2$Mixed * 0.25 + data2$Wetland * 0.1 + data2$Woodland * 0.5
+
+
+###########################################################################
+###########################################################################
+## Combining barplots, boxplot and ca plot
+
+
+## Colors for vegetation categories
+cols <- c('#66cacd','#e5fca5','#e2ca7b','#74c476','#31944e','#005723')
+## colors for correspondence analysis and tree affinity boxplot
+colores <- c('#e41a1c','#377eb8','#4daf4a','#984ea3')
+
+par(fig=c(0.1,0.45,0.63,1), mar=c(0,0,0,0), cex.axis=0.8)
+barplot(dataAfr3, horiz=TRUE, col=cols, las=1, border=NA, width=1, space=0.0, xaxt="n")
+
+par(fig=c(0.1,0.45,0.478,0.638), new=TRUE, mar=c(0,0,0,0), cex.axis=0.8)
+barplot(dataLeC3, horiz=TRUE, col=cols, las=1, border=NA, width=1, space=0.0, xaxt="n")
+
+par(fig=c(0.1,0.45,0.368,0.478), new=TRUE, mar=c(0,0,0,0), cex.axis=0.8)
+barplot(dataAsia3, horiz=TRUE, col=cols, las=1, border=NA, width=1, space=0.0, xaxt="n")
+
+par(fig=c(0.1,0.45,0.04,0.374), new=TRUE, mar=c(0,0,0,0), cex.axis=0.8)
+barplot(dataEur3, horiz=TRUE, col=cols, las=1, border=NA, width=1, space=0.0, xaxt="n")
+axis(1, at=seq(0,1,0.2), mgp=c(3, 0.2, 0), tck=-0.03)
+
+par(fig=c(0.56,0.77,0.75,0.99), cex.axis=0.8, new=TRUE)
+barplot(cbind(rowMeans(dataEur3), rowMeans(dataAsia3), rowMeans(dataLeC3), rowMeans(dataAfr3)),
+horiz=TRUE, col=cols, xaxt="n")
+axis(1, at=seq(0,1,0.2), mgp=c(3, 0.2, 0), tck=-0.03)
+
+par(fig=c(0.8,0.97,0.75,0.99), cex.axis=0.8, new=TRUE)
+barplot(colSums(data2[, 4:9]*8)/sum(colSums(data2[, 4:9]*8))*100, 
+col=cols, horiz=TRUE, las=1, xaxt="n", yaxt="n", xlim=c(0,45))
+axis(1, at=seq(0,40,10), mgp=c(3, 0.2, 0), tck=-0.03)
+
+par(fig=c(0.56,0.97,0.39,0.65), new=TRUE)
+boxplot(Treeaff~Region, data=data2, varwidth=TRUE, range=0, las=1, xaxt="n", yaxt="n",
+col=c(adjustcolor(colores[1], alpha.f=0.5), adjustcolor(colores[3], alpha.f=0.5),
+adjustcolor(colores[4], alpha.f=0.5), adjustcolor(colores[2], alpha.f=0.5)))
+stripchart(Treeaff~Region, data=data2, vertical=TRUE,
+add=TRUE, method="jitter", jitter=0.1, pch=16, cex=0.7, col=adjustcolor("black", alpha.f=0.5))
+axis(side=2, at=seq(0.2, 1.0, 0.2), mgp=c(3, 0.7, 0), tck=-0.03, las=1, cex.axis=0.8)
+axis(side=1, at=c(1,2,3,4), lab=c("Africa", "Levant & Caucasus", "Asia", "Europe"),
+mgp=c(3, 0.2, 0), tck=-0.02, cex.axis=0.8)
+
+par(fig=c(0.56,0.97,0.04,0.32), new=TRUE)
+plot(cadata$Dim1, cadata$Dim2, typ="n", xaxt="n", xlim=c(-2.1,1.2), ylim=c(-1.7, 1.2), yaxt="n",
+xlab="", ylab=paste("Dim 2 (",round(summary(cares3)$scree[2,3], 1),"%)", sep=""))
+axis(2, at=seq(-1.5, 1, 0.5), las=1, mgp=c(3, 0.7, 0), tck=-0.02)
+axis(1, at=seq(-2,1,0.5), mgp=c(3, 0.2, 0), tck=-0.02)
+legend(-2.1,-0.87, c("Africa", "Levant & Caucasus", "Asia", "Europe"), lwd=2, bty="n",
+cex=0.7, col=c(colores[1], colores[3], colores[4], colores[2]), 
+text.col=c(colores[1], colores[3], colores[4], colores[2]))
+
+points(cadata$Dim1[cadata$Region=="Africa"], cadata$Dim2[cadata$Region=="Africa"],
+col=adjustcolor(colores[1], alpha.f=0.4), pch=16, cex=1.2)
+text(cadata[44, "Dim1"], cadata[44, "Dim2"],
+rownames(cadata[44, ]), col=colores[1], pos=4, cex=0.8)
+text(cadata[35, "Dim1"], cadata[35, "Dim2"],
+rownames(cadata[35, ]), col=colores[1], pos=4, cex=0.8)
+points(cadata$Dim1[cadata$Region=="Europe"], cadata$Dim2[cadata$Region=="Europe"],
+col=adjustcolor(colores[2], alpha.f=0.40), pch=16, cex=1.2)
+
+points(cadata$Dim1[cadata$Region=="LevCau"], cadata$Dim2[cadata$Region=="LevCau"],
+col=adjustcolor(colores[3], alpha.f=0.40), pch=16, cex=1.2)
+
+points(cadata$Dim1[cadata$Region=="Asia"], cadata$Dim2[cadata$Region=="Asia"],
+col=adjustcolor(colores[4], alpha.f=0.40), pch=16, cex=1.2)
+
+plot(chafri, add=T, col=colores[1], lwd=2)
+plot(cheur, add=T, col=colores[2], lwd=2)
+plot(chlec, add=T, col=colores[3], lwd=2)
+plot(chasia, add=T, col=colores[4], lwd=2)
+
+text(cacoord(cares3, type="rowgreen")$columns[, 1],cacoord(cares3, type="rowgreen")$columns[, 2],
+c("Wetland", "Grassland", "Shrubland", "Mixed", "Woodland", "Forest"), pos=3, cex=1)
+abline(h=0, v=0, lty=2, col="darkgray")
+x0 <- rep(0, length(cacoord(cares3, type="rowgreen")$columns[,1]))
+y0 <- x0
+x1 <- cacoord(cares3, type="rowgreen")$columns[,1]
+y1 <- cacoord(cares3, type="rowgreen")$columns[,2]
+arrows(x0, y0, x1, y1, length=0.1, col="black", lwd=2)
+
+##  END OF THE SCRIPT
